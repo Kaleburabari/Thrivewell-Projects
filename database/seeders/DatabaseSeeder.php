@@ -23,6 +23,9 @@ class DatabaseSeeder
             ['use_ai_companion', 'Use Kale AI companion with safety boundaries'],
             ['view_audit_timeline', 'View own dashboard audit timeline'],
             ['trigger_crisis_handoff', 'Trigger human crisis handoff'],
+            ['manage_credentials', 'Manage own credential vault'],
+            ['review_credentials', 'Review credential verification queue'],
+            ['view_signed_credentials', 'View signed credential downloads'],
         ];
         foreach ($permissions as $permission) {
             $pdo->prepare('INSERT OR IGNORE INTO permissions(name,description) VALUES(?,?)')->execute($permission);
@@ -33,14 +36,18 @@ class DatabaseSeeder
         foreach ($permissionIds as $pid) {
             $pdo->prepare('INSERT OR IGNORE INTO role_permission(role_id,permission_id) VALUES(?,?)')->execute([$roleIds['superadmin'], $pid]);
         }
-        foreach (['view_dashboard', 'view_sessions', 'view_wallet', 'view_cpd', 'use_ai_companion', 'view_audit_timeline', 'trigger_crisis_handoff'] as $name) {
+        foreach (['view_dashboard', 'view_sessions', 'view_wallet', 'view_cpd', 'use_ai_companion', 'view_audit_timeline', 'trigger_crisis_handoff', 'manage_credentials', 'view_signed_credentials'] as $name) {
             $pdo->prepare('INSERT OR IGNORE INTO role_permission(role_id,permission_id) VALUES(?,?)')->execute([$roleIds['intern'], $permissionIds[$name]]);
+        }
+        foreach (['view_dashboard', 'view_sessions', 'manage_credentials', 'view_signed_credentials'] as $name) {
+            $pdo->prepare('INSERT OR IGNORE INTO role_permission(role_id,permission_id) VALUES(?,?)')->execute([$roleIds['counsellor'], $permissionIds[$name]]);
         }
 
         $users = [
             ['Adaeze Okafor', 'intern@thrivewell.test', 'password', $roleIds['intern'], 'https://i.pravatar.cc/120?img=47', 'available'],
             ['Maya Hart', 'admin@thrivewell.test', 'password', $roleIds['superadmin'], 'https://i.pravatar.cc/120?img=32', 'available'],
             ['Sarah Jonah', 'client@thrivewell.test', 'password', $roleIds['client'], 'https://i.pravatar.cc/120?img=49', 'offline'],
+            ['Dr. Kelechi Mensah', 'counsellor@thrivewell.test', 'password', $roleIds['counsellor'], 'https://i.pravatar.cc/120?img=52', 'available'],
         ];
         foreach ($users as $u) {
             $pdo->prepare('INSERT OR IGNORE INTO users(name,email,password,role_id,avatar,status,email_verified_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)')
@@ -140,6 +147,30 @@ class DatabaseSeeder
         ] as $field) {
             $pdo->prepare('INSERT INTO form_builder_fields(user_id,label,field_type,required,help_text,sort_order,created_at) VALUES(?,?,?,?,?,?,?)')
                 ->execute([$internId, $field[0], $field[1], $field[2], $field[3], $field[4], $now]);
+        }
+
+
+        $adminId = (int) $pdo->query("SELECT id FROM users WHERE email='admin@thrivewell.test'")->fetchColumn();
+        $counsellorId = (int) $pdo->query("SELECT id FROM users WHERE email='counsellor@thrivewell.test'")->fetchColumn();
+        foreach ([
+            [$internId, 'university_letter', 'HOD reference letter', 'private/credentials/intern-hod-reference.pdf', 'pending_review', null, null],
+            [$internId, 'government_id', 'Government ID', 'private/credentials/intern-government-id.pdf', 'revision_requested', $adminId, 'Please upload a clearer scan with all four corners visible.'],
+            [$counsellorId, 'license', 'Professional counselling license', 'private/credentials/counsellor-license.pdf', 'verified', $adminId, null],
+            [$counsellorId, 'degree', 'Clinical psychology degree', 'private/credentials/counsellor-degree.pdf', 'verified', $adminId, null],
+        ] as $doc) {
+            $pdo->prepare('INSERT INTO credential_documents(user_id,document_type,title,storage_disk,storage_path,file_hash,status,reviewer_id,revision_reason,submitted_at,reviewed_at,expires_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+                ->execute([$doc[0], $doc[1], $doc[2], 'private', $doc[3], hash('sha256', $doc[3]), $doc[4], $doc[5], $doc[6], $now, $doc[5] ? $now : null, '2027-05-14', $now, $now]);
+        }
+        $verifiedDocs = $pdo->query("SELECT id FROM credential_documents WHERE status='verified'")->fetchAll(\PDO::FETCH_COLUMN);
+        foreach ($verifiedDocs as $documentId) {
+            $pdo->prepare('INSERT INTO credential_reviews(credential_document_id,reviewer_id,decision,notes,created_at) VALUES(?,?,?,?,?)')
+                ->execute([$documentId, $adminId, 'approved', 'Verified against submitted private vault metadata.', $now]);
+        }
+        $pdo->prepare('INSERT INTO credential_reviews(credential_document_id,reviewer_id,decision,notes,created_at) VALUES(?,?,?,?,?)')
+            ->execute([2, $adminId, 'revision_requested', 'Please upload a clearer scan with all four corners visible.', $now]);
+        foreach ([[$counsellorId, 'Verified Counsellor', 'professional', 'active'], [$internId, 'Credential Review In Progress', 'intern', 'pending']] as $badge) {
+            $pdo->prepare('INSERT INTO verification_badges(user_id,badge,level,status,issued_at,expires_at,created_at) VALUES(?,?,?,?,?,?,?)')
+                ->execute([$badge[0], $badge[1], $badge[2], $badge[3], $badge[3] === 'active' ? $now : null, '2027-05-14', $now]);
         }
 
         $pdo->prepare('INSERT INTO audit_logs(user_id,action,auditable_type,auditable_id,metadata,created_at) VALUES(?,?,?,?,?,?)')

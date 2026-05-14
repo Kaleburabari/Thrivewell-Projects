@@ -3,6 +3,7 @@ session_start();
 require __DIR__.'/../bootstrap/app.php';
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CredentialController;
 use App\Http\Controllers\DashboardApiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OnboardingController;
@@ -55,6 +56,18 @@ if ($path === '/login' && $method === 'GET') {
     (new OnboardingController())->complete();
 } elseif ($path === '/onboarding/success' && $method === 'GET') {
     (new OnboardingController())->success();
+} elseif ($path === '/credentials' && $method === 'GET') {
+    (new CredentialController())->vault();
+} elseif ($path === '/credentials/submit' && $method === 'POST') {
+    (new CredentialController())->submit();
+} elseif ($path === '/credentials/signed-download' && $method === 'POST') {
+    (new CredentialController())->signedDownload();
+} elseif ($path === '/admin/credentials' && $method === 'GET') {
+    (new CredentialController())->reviewQueue();
+} elseif ($path === '/admin/credentials/approve' && $method === 'POST') {
+    (new CredentialController())->approve();
+} elseif ($path === '/admin/credentials/revision' && $method === 'POST') {
+    (new CredentialController())->requestRevision();
 } elseif ($path === '/logout') {
     (new AuthController())->logout();
 } elseif ($path === '/dashboard' && $method === 'GET') {

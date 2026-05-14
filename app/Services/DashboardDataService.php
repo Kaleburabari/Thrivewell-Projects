@@ -41,6 +41,7 @@ class DashboardDataService
                 ['label' => 'My Clients', 'icon' => '♧', 'active' => false, 'badge' => null],
                 ['label' => 'Sessions', 'icon' => '◎', 'active' => false, 'badge' => null],
                 ['label' => 'Session Notes', 'icon' => '▧', 'active' => false, 'badge' => null],
+                ['label' => 'Credential Vault', 'icon' => '▣', 'active' => false, 'badge' => 'Review'],
                 ['label' => 'Listening Bonus', 'icon' => '◉', 'active' => false, 'badge' => 'New'],
                 ['label' => 'Wallet & Payouts', 'icon' => '▤', 'active' => false, 'badge' => null],
                 ['label' => 'Resources', 'icon' => '◇', 'active' => false, 'badge' => null],

@@ -5,6 +5,7 @@ use App\Models\User;
 use App\Policies\DashboardPolicy;
 use App\Services\DashboardActionService;
 use App\Services\DashboardDataService;
+use App\Services\CredentialVerificationService;
 use App\Services\Database;
 use App\Services\MasterSpecService;
 use App\Services\OnboardingService;
@@ -27,6 +28,12 @@ assert_true((bool) $intern, 'demo intern exists');
 assert_true(password_verify('password', $intern['password']), 'demo intern password verifies');
 assert_true(DashboardPolicy::view($intern), 'intern can view dashboard');
 assert_true(User::can($intern, 'trigger_crisis_handoff'), 'intern can request human crisis handoff');
+assert_true(User::can($intern, 'manage_credentials'), 'intern can manage credential vault');
+
+$admin = User::findByEmail('admin@thrivewell.test');
+assert_true(User::can($admin, 'review_credentials'), 'admin can review credential queue');
+$counsellor = User::findByEmail('counsellor@thrivewell.test');
+assert_true(User::can($counsellor, 'manage_credentials'), 'counsellor can manage credential vault');
 
 $client = User::findByEmail('client@thrivewell.test');
 assert_true(!DashboardPolicy::view($client), 'client is denied intern dashboard permission');
@@ -79,6 +86,29 @@ assert_true(count(Database::table('SELECT * FROM onboarding_profiles WHERE user_
 assert_true(count(Database::table('SELECT * FROM consent_records WHERE user_id = ? AND granted = 1', [$newUser['id']])) === 1, 'onboarding consent is recorded');
 assert_true(count(Database::table('SELECT * FROM email_verification_tokens WHERE user_id = ?', [$newUser['id']])) === 1, 'email verification token is prepared');
 assert_true(count(Database::table("SELECT * FROM audit_logs WHERE user_id = ? AND action = 'onboarding_completed'", [$newUser['id']])) === 1, 'onboarding completion is audited');
+
+
+$credentials = new CredentialVerificationService();
+$vault = $credentials->vaultFor((int) $intern['id']);
+assert_true(count($vault['documents']) === 2, 'intern credential vault has seeded documents');
+assert_true($vault['summary']['pending_review'] === 1, 'credential vault tracks pending review');
+assert_true(count($credentials->reviewQueue()) >= 2, 'credential review queue is seeded');
+$submittedCredential = $credentials->submitMetadata((int) $intern['id'], [
+    'document_type' => 'degree',
+    'title' => 'Updated counselling certificate',
+    'storage_path' => 'private/credentials/updated-certificate.pdf',
+]);
+assert_true($submittedCredential['ok'] === true, 'credential metadata can be submitted to private vault');
+$download = $credentials->signedDownloadToken((int) $intern['id'], (int) $submittedCredential['document']['id']);
+assert_true($download['ok'] === true && strlen($download['token']) === 64, 'signed credential download token is generated');
+$approved = $credentials->approve((int) $admin['id'], (int) $submittedCredential['document']['id'], 'Approved in test review.');
+assert_true($approved['ok'] === true, 'credential review can approve submitted metadata');
+$approvedDoc = Database::row('SELECT * FROM credential_documents WHERE id = ?', [$submittedCredential['document']['id']]);
+assert_true($approvedDoc['status'] === 'verified', 'credential status updates to verified');
+assert_true(count(Database::table('SELECT * FROM verification_badges WHERE user_id = ? AND status = ?', [$intern['id'], 'active'])) >= 1, 'credential approval creates active badge');
+$revision = $credentials->requestRevision((int) $admin['id'], 2, 'Test revision request.');
+assert_true($revision['ok'] === true, 'credential review can request revision');
+assert_true(count(Database::table("SELECT * FROM audit_logs WHERE action LIKE 'credential_%'")) >= 4, 'credential actions are audited');
 
 $actions = new DashboardActionService();
 $status = $actions->setAvailability((int) $intern['id'], 'reflecting');
