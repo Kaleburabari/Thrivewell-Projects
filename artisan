@@ -1,0 +1,34 @@
+#!/usr/bin/env php
+<?php
+require __DIR__.'/bootstrap/app.php';
+$command = $argv[1] ?? 'list';
+$ansi = in_array('--ansi', $argv, true);
+switch ($command) {
+    case 'key:generate':
+        $env = file_exists('.env') ? file_get_contents('.env') : file_get_contents('.env.example');
+        if (!str_contains($env, 'APP_KEY=base64:')) {
+            $env = preg_replace('/APP_KEY=.*/', 'APP_KEY=base64:'.base64_encode(random_bytes(32)), $env);
+            file_put_contents('.env', $env);
+        }
+        echo "Application key set successfully.\n";
+        break;
+    case 'migrate':
+        App\Services\Database::migrate();
+        echo "Migrations completed.\n";
+        break;
+    case 'db:seed':
+        App\Services\Database::seed();
+        echo "Database seeded.\n";
+        break;
+    case 'migrate:fresh':
+        App\Services\Database::fresh();
+        App\Services\Database::migrate();
+        if (in_array('--seed', $argv, true)) App\Services\Database::seed();
+        echo "Database refreshed".(in_array('--seed', $argv, true) ? ' and seeded' : '').".\n";
+        break;
+    case 'test':
+        passthru(PHP_BINARY.' tests/run.php', $code);
+        exit($code);
+    default:
+        echo "ThriveWell OS artisan commands: key:generate, migrate, db:seed, migrate:fresh --seed, test\n";
+}
