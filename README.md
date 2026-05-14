@@ -66,6 +66,21 @@ php artisan test
 
 Kale AI Companion is represented as a safety-boundary service and dashboard panel. It must never claim to replace therapy, generate diagnoses, provide medication advice, or bypass human crisis handoff. Future AI outputs must be editable before saving to clinical records, memory must be opt-in/exportable/erasable, and crisis false positives must be reviewed with audit logs.
 
+
+## Official Laravel/Inertia package access gate
+
+Official Laravel/Inertia migration should begin only after package access is available. Check access with:
+
+```bash
+bash scripts/check-package-access.sh
+# or
+composer package:check
+# or
+npm run check:package-access
+```
+
+If the check fails, follow `docs/official-laravel-inertia-migration.md` to allowlist package hosts or configure internal mirrors, and continue the master-spec fallback path without reducing existing functionality.
+
 ## Known environment blocker
 
 Network calls to Packagist and npm returned HTTP 403 through the configured proxy, so this pass could not install the latest Laravel, Inertia, React, Tailwind, or chart packages. The runnable foundation uses zero external dependencies while preserving Laravel-style organization and commands.

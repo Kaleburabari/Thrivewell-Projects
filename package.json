@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-assets.mjs",
-    "dev": "php -S 127.0.0.1:8000 -t public"
+    "dev": "php -S 127.0.0.1:8000 -t public",
+    "check:package-access": "bash scripts/check-package-access.sh"
   },
   "devDependencies": {}
 }
