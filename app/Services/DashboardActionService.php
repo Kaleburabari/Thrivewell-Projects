@@ -30,7 +30,7 @@ class DashboardActionService
             'INSERT INTO crisis_incidents(user_id, concern, tier, status, human_review_required, created_at, updated_at) VALUES(?,?,?,?,?,?,?)',
             [$userId, $concern, 'supportive_review', 'open', 1, date('c'), date('c')]
         );
-        $incidentId = (int) Database::pdo()->lastInsertId();
+        $incidentId = (int) (Database::row('SELECT id FROM crisis_incidents WHERE user_id = ? ORDER BY id DESC LIMIT 1', [$userId])['id'] ?? 0);
         AuditLogger::record($userId, 'crisis_handoff_requested', 'crisis_incident', $incidentId, [
             'human_handoff_first' => true,
             'false_positive_review' => true,

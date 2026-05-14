@@ -6,13 +6,13 @@ Master-spec-driven premium foundation for the ThriveWell OS counselling platform
 
 ## What is included
 
-- Auth-ready login, logout, and registration-readiness screens.
+- Auth-ready login, logout, and Version 1.0 multi-role onboarding screens with draft saving, consent capture, accessibility preferences, profile creation, verification-token readiness, and audit logging.
 - Role, permission, policy, and audit-log foundation.
 - Premium dark/light intern dashboard inspired by the supplied benchmark image and governed by `THRIVEWELL_OS_PSYCHOLOGICAL_PREMIUM_MASTER_SPEC.php`.
 - Sidebar, mobile navigation, topbar, profile controls, status selector, notification actions, command palette, filter bar, KPI cards, schedule panel, recent sessions, wallet panel, earnings chart, radar chart, CPD progress ring, AI companion panel, client signal board, supervision queue, resource library, privacy/safety index, CPD data table, audit timeline, no-code workflow canvas, consent form builder, master-spec compliance panel, support/upgrade cards, consent banner, and crisis handoff card.
 - Dashboard API routes for live widget data, availability updates, notification read state, and human-first crisis/support handoff.
-- SQLite migrations and seed data for users, roles, permissions, sessions, earnings, CPD modules, notifications, wellness actions, AI companion cards, crisis incidents, client signals, supervision tasks, resources, dashboard widgets, workflow nodes, form-builder fields, preferences, and audit logs.
-- Tests for authentication data, dashboard access, role denial, seeded dashboard data, dashboard builder data, master-spec directive coverage, status updates, notification state, integer-money storage, and human-review crisis incidents.
+- SQLite migrations and seed data for users, roles, permissions, onboarding drafts/profiles, consent records, email verification tokens, sessions, earnings, CPD modules, notifications, wellness actions, AI companion cards, crisis incidents, client signals, supervision tasks, resources, dashboard widgets, workflow nodes, form-builder fields, preferences, and audit logs.
+- Tests for authentication data, dashboard access, role denial, seeded dashboard data, dashboard builder data, master-spec directive coverage, multi-role onboarding, consent records, verification-token readiness, status updates, notification state, integer-money storage, and human-review crisis incidents.
 
 
 ## Master specification workflow
@@ -52,11 +52,14 @@ php artisan test
 ## Available screens and API routes
 
 - `GET /login` — calm demo login screen.
-- `GET /register` — registration readiness screen.
+- `GET /register` — premium multi-role onboarding screen.
+- `GET /onboarding/success` — onboarding completion confirmation.
 - `GET /dashboard` — full protected intern dashboard.
 - `GET /dashboard/data` — JSON dashboard data payload.
 - `POST /dashboard/status` — CSRF-protected availability update with audit log.
 - `POST /notifications/read` — CSRF-protected notification read action with audit log.
+- `POST /onboarding/draft` — CSRF-protected draft save for progressive onboarding.
+- `POST /onboarding/complete` — CSRF-protected onboarding completion with profile, consent, email verification readiness, and audit log.
 - `POST /crisis/handoff` — CSRF-protected human support handoff with audit log and false-positive review readiness.
 
 ## Clinical and AI safety boundaries
@@ -69,4 +72,4 @@ Network calls to Packagist and npm returned HTTP 403 through the configured prox
 
 ## Next prompt
 
-Continue ThriveWell OS Version 1.0 by replacing the zero-dependency shell with official Laravel + Inertia React once package registry access is available, then implement full Fortify/Sanctum auth, PostgreSQL support, queues, notifications, Paystack adapter, and real CRUD for sessions, wallet payouts, CPD, audit logs, onboarding, credential verification, and session booking.
+Continue ThriveWell OS Version 1.0 by expanding credential verification and session booking, or by replacing the zero-dependency shell with official Laravel + Inertia React once package registry access is available, then implement full Fortify/Sanctum auth, PostgreSQL support, queues, notifications, Paystack adapter, and real CRUD for sessions, wallet payouts, CPD, audit logs, onboarding, credential verification, and session booking.

@@ -5,6 +5,7 @@ require __DIR__.'/../bootstrap/app.php';
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardApiController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OnboardingController;
 use App\Models\User;
 
 if (empty($_SESSION['csrf_token'])) {
@@ -46,8 +47,14 @@ if ($path === '/login' && $method === 'GET') {
     (new AuthController())->login();
 } elseif ($path === '/login' && $method === 'POST') {
     (new AuthController())->authenticate();
-} elseif ($path === '/register') {
-    (new AuthController())->register();
+} elseif ($path === '/register' && $method === 'GET') {
+    (new OnboardingController())->show();
+} elseif ($path === '/onboarding/draft' && $method === 'POST') {
+    (new OnboardingController())->saveDraft();
+} elseif ($path === '/onboarding/complete' && $method === 'POST') {
+    (new OnboardingController())->complete();
+} elseif ($path === '/onboarding/success' && $method === 'GET') {
+    (new OnboardingController())->success();
 } elseif ($path === '/logout') {
     (new AuthController())->logout();
 } elseif ($path === '/dashboard' && $method === 'GET') {

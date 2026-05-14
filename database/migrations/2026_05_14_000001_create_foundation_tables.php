@@ -25,6 +25,13 @@ return [
     "CREATE TABLE IF NOT EXISTS dashboard_widgets (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL, widget_type TEXT NOT NULL, position INTEGER NOT NULL, enabled INTEGER DEFAULT 1, config_json TEXT NOT NULL, created_at TEXT NOT NULL)",
     "CREATE TABLE IF NOT EXISTS workflow_nodes (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL, node_type TEXT NOT NULL, status TEXT NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, config_json TEXT NOT NULL, created_at TEXT NOT NULL)",
     "CREATE TABLE IF NOT EXISTS form_builder_fields (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, label TEXT NOT NULL, field_type TEXT NOT NULL, required INTEGER DEFAULT 0, help_text TEXT NOT NULL, sort_order INTEGER NOT NULL, created_at TEXT NOT NULL)",
+    "CREATE TABLE IF NOT EXISTS onboarding_drafts (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, role TEXT NOT NULL, current_step INTEGER NOT NULL DEFAULT 1, payload_json TEXT NOT NULL, updated_at TEXT NOT NULL, created_at TEXT NOT NULL)",
+    "CREATE INDEX IF NOT EXISTS onboarding_drafts_role_step_index ON onboarding_drafts(role, current_step)",
+    "CREATE TABLE IF NOT EXISTS onboarding_profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, role TEXT NOT NULL, preferred_name TEXT NOT NULL, support_goal TEXT NOT NULL, accessibility_preferences TEXT NOT NULL, onboarding_status TEXT NOT NULL, completed_at TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+    "CREATE INDEX IF NOT EXISTS onboarding_profiles_user_role_index ON onboarding_profiles(user_id, role)",
+    "CREATE TABLE IF NOT EXISTS consent_records (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, consent_version TEXT NOT NULL, consent_scope TEXT NOT NULL, granted INTEGER NOT NULL, ip_address TEXT, user_agent TEXT, created_at TEXT NOT NULL)",
+    "CREATE INDEX IF NOT EXISTS consent_records_user_scope_index ON consent_records(user_id, consent_scope)",
+    "CREATE TABLE IF NOT EXISTS email_verification_tokens (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, token TEXT NOT NULL UNIQUE, expires_at TEXT NOT NULL, used_at TEXT, created_at TEXT NOT NULL)",
     "CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, action TEXT NOT NULL, auditable_type TEXT NOT NULL, auditable_id INTEGER, metadata TEXT NOT NULL, created_at TEXT NOT NULL)",
     "CREATE INDEX IF NOT EXISTS audit_action_created_index ON audit_logs(action, created_at)"
 ];

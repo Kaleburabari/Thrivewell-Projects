@@ -3,9 +3,14 @@
 ## Browser routes
 - `GET /login` — calm auth screen with demo credentials.
 - `POST /login` — session authentication.
-- `GET /register` — registration readiness screen.
+- `GET /register` — premium multi-role onboarding screen with progressive consent-first form.
 - `GET /dashboard` — protected premium intern dashboard via role permission policy.
 - `GET /logout` — destroy session.
+- `GET /onboarding/success` — onboarding completion confirmation and next-step handoff.
+
+## Onboarding API routes
+- `POST /onboarding/draft` — CSRF-protected onboarding draft save for progressive disclosure.
+- `POST /onboarding/complete` — CSRF-protected multi-role account creation with profile, consent, verification token, and audit log.
 
 ## Dashboard API routes
 - `GET /dashboard/data` — JSON dashboard payload for live widgets.

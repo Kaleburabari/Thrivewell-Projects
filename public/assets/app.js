@@ -67,3 +67,19 @@ document.querySelector('.filter-bar input')?.addEventListener('input', (event) =
 document.querySelectorAll('.filter-bar button').forEach((button) => {
   button.addEventListener('click', () => announce(`${button.textContent} filter staged for the next dashboard query.`));
 });
+
+const onboardingForm = document.querySelector('[data-onboarding-form]');
+document.querySelector('[data-save-draft]')?.addEventListener('click', async () => {
+  if (!onboardingForm) return;
+  try {
+    const response = await fetch('/onboarding/draft', {
+      method: 'POST',
+      body: new FormData(onboardingForm),
+      headers: { 'Accept': 'application/json' },
+    });
+    const payload = await response.json();
+    announce(payload.message || 'Draft saved gently.', payload.ok ? 'success' : 'error');
+  } catch (error) {
+    announce('We could not save the draft. Nothing has been submitted.', 'error');
+  }
+});

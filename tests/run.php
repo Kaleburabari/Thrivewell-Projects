@@ -7,6 +7,7 @@ use App\Services\DashboardActionService;
 use App\Services\DashboardDataService;
 use App\Services\Database;
 use App\Services\MasterSpecService;
+use App\Services\OnboardingService;
 
 function assert_true($condition, $message): void
 {
@@ -51,6 +52,33 @@ assert_true(count($data['master_spec']['phases']) === 11, 'master specification 
 $spec = (new MasterSpecService())->summary();
 assert_true($spec['coverage']['no_reduction'] === true, 'master specification enforces improvement-only work');
 assert_true(str_contains((new MasterSpecService())->text(), 'Kale AI Companion must never claim to replace therapy'), 'master specification includes Kale AI safety boundary');
+
+
+$onboarding = new OnboardingService();
+$draft = $onboarding->saveDraft([
+    'email' => 'new.intern@thrivewell.test',
+    'role' => 'intern',
+    'current_step' => 2,
+    'support_goal' => 'Learn safely while helping clients.',
+]);
+assert_true($draft['ok'] === true, 'multi-role onboarding draft can be saved');
+$created = $onboarding->complete([
+    'name' => 'New Intern',
+    'preferred_name' => 'New',
+    'email' => 'new.intern@thrivewell.test',
+    'password' => 'safe-password',
+    'role' => 'intern',
+    'support_goal' => 'Learn safely while helping clients.',
+    'accessibility' => ['reduced_motion', 'captions'],
+    'consent_privacy' => '1',
+]);
+assert_true($created['ok'] === true, 'multi-role onboarding can complete');
+$newUser = User::findByEmail('new.intern@thrivewell.test');
+assert_true((bool) $newUser && DashboardPolicy::view($newUser), 'onboarded intern receives dashboard permission');
+assert_true(count(Database::table('SELECT * FROM onboarding_profiles WHERE user_id = ?', [$newUser['id']])) === 1, 'onboarding profile is stored');
+assert_true(count(Database::table('SELECT * FROM consent_records WHERE user_id = ? AND granted = 1', [$newUser['id']])) === 1, 'onboarding consent is recorded');
+assert_true(count(Database::table('SELECT * FROM email_verification_tokens WHERE user_id = ?', [$newUser['id']])) === 1, 'email verification token is prepared');
+assert_true(count(Database::table("SELECT * FROM audit_logs WHERE user_id = ? AND action = 'onboarding_completed'", [$newUser['id']])) === 1, 'onboarding completion is audited');
 
 $actions = new DashboardActionService();
 $status = $actions->setAvailability((int) $intern['id'], 'reflecting');
