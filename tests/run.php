@@ -126,3 +126,5 @@ $incidentRows = Database::table('SELECT * FROM crisis_incidents WHERE user_id = 
 assert_true(count($incidentRows) === 1 && (int) $incidentRows[0]['human_review_required'] === 1, 'crisis handoff requires human review');
 
 echo "All ThriveWell OS full dashboard tests passed.\n";
+
+require __DIR__.'/migration_readiness.php';

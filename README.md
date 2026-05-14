@@ -85,12 +85,30 @@ composer package:check
 npm run check:package-access
 ```
 
-If the check fails, follow `docs/official-laravel-inertia-migration.md` to allowlist package hosts or configure internal mirrors, and continue the master-spec fallback path without reducing existing functionality.
+The diagnostic supports internal mirrors when public registries are blocked:
+
+```bash
+export THRIVEWELL_COMPOSER_REPOSITORY_URL=https://your-composer-mirror.example
+export THRIVEWELL_NPM_REGISTRY_URL=https://your-npm-mirror.example
+bash scripts/check-package-access.sh
+```
+
+When the gate passes, create the official migration workspace with:
+
+```bash
+bash scripts/migrate-to-official-laravel-inertia.sh
+# or
+composer migrate:official
+# or
+npm run migrate:official
+```
+
+The migration command installs official Laravel, Inertia React, TypeScript, Vite, and Tailwind into `.migration/official-laravel-inertia`, copies the parity references, and refuses to alter application code while package access is blocked. Follow `docs/official-laravel-inertia-parity-map.md` before deleting the bridge scaffold.
 
 ## Known environment blocker
 
-Network calls to Packagist and npm returned HTTP 403 through the configured proxy, so this pass could not install the latest Laravel, Inertia, React, Tailwind, or chart packages. The runnable foundation uses zero external dependencies while preserving Laravel-style organization and commands.
+Network calls to Packagist, npm, and GitHub returned HTTP 403 through the configured proxy in this container, so the official migration cannot safely run here until the allowlist or internal mirrors are configured. The runnable foundation remains zero-dependency as a bridge, but the repository now includes an executable migration gate, mirror-aware diagnostics, an official migration script, and a parity map for preserving current behavior.
 
 ## Next prompt
 
-Continue ThriveWell OS Version 1.0 by expanding credential verification and session booking, or by replacing the zero-dependency shell with official Laravel + Inertia React once package registry access is available, then implement full Fortify/Sanctum auth, PostgreSQL support, queues, notifications, Paystack adapter, and real CRUD for sessions, wallet payouts, CPD, audit logs, onboarding, credential verification, and session booking.
+First run `bash scripts/check-package-access.sh`. If it passes, run `bash scripts/migrate-to-official-laravel-inertia.sh` and complete the parity checklist before removing the bridge scaffold. If it fails, configure the allowlist or internal mirrors documented in `docs/official-laravel-inertia-migration.md` and rerun the gate.

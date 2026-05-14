@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node scripts/build-assets.mjs",
     "dev": "php -S 127.0.0.1:8000 -t public",
-    "check:package-access": "bash scripts/check-package-access.sh"
+    "check:package-access": "bash scripts/check-package-access.sh",
+    "migrate:official": "bash scripts/migrate-to-official-laravel-inertia.sh"
   },
   "devDependencies": {}
 }

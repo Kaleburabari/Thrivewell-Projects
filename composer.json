@@ -14,6 +14,7 @@
   "scripts": {
     "test": "php tests/run.php",
     "post-install-cmd": "@php artisan key:generate --ansi || true",
-    "package:check": "bash scripts/check-package-access.sh"
+    "package:check": "bash scripts/check-package-access.sh",
+    "migrate:official": "bash scripts/migrate-to-official-laravel-inertia.sh"
   }
 }
