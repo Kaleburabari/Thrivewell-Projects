@@ -1,0 +1,53 @@
+#!/usr/bin/env php
+<?php
+require __DIR__.'/bootstrap/app.php';
+$command = $argv[1] ?? 'list';
+$ansi = in_array('--ansi', $argv, true);
+function option_value(array $argv, string $name, string $default): string {
+    foreach ($argv as $index => $value) {
+        if ($value === $name && isset($argv[$index + 1])) return $argv[$index + 1];
+        if (str_starts_with($value, $name.'=')) return substr($value, strlen($name) + 1);
+    }
+    return $default;
+}
+switch ($command) {
+    case 'key:generate':
+        $env = file_exists('.env') ? file_get_contents('.env') : file_get_contents('.env.example');
+        if (!str_contains($env, 'APP_KEY=base64:')) {
+            $env = preg_replace('/APP_KEY=.*/', 'APP_KEY=base64:'.base64_encode(random_bytes(32)), $env);
+            file_put_contents('.env', $env);
+        }
+        echo "Application key set successfully.\n";
+        break;
+    case 'migrate':
+        App\Services\Database::migrate();
+        if (!App\Models\User::findByEmail('intern@thrivewell.test')) {
+            App\Services\Database::seed();
+            echo "Migrations completed and demo data seeded.\n";
+        } else {
+            echo "Migrations completed. Demo data already present.\n";
+        }
+        break;
+    case 'db:seed':
+        App\Services\Database::seed();
+        echo "Database seeded.\n";
+        break;
+    case 'migrate:fresh':
+        App\Services\Database::fresh();
+        App\Services\Database::migrate();
+        if (in_array('--seed', $argv, true)) App\Services\Database::seed();
+        echo "Database refreshed".(in_array('--seed', $argv, true) ? ' and seeded' : '').".\n";
+        break;
+    case 'serve':
+        $host = option_value($argv, '--host', '0.0.0.0');
+        $port = option_value($argv, '--port', '8000');
+        echo "Starting ThriveWell OS backend on http://{$host}:{$port}\n";
+        if ($host === '0.0.0.0') echo "Open http://127.0.0.1:{$port} locally, or use your forwarded/container port URL.\n";
+        passthru(PHP_BINARY.' -S '.escapeshellarg($host.':'.$port).' -t public', $code);
+        exit($code);
+    case 'test':
+        passthru(PHP_BINARY.' tests/run.php', $code);
+        exit($code);
+    default:
+        echo "ThriveWell OS artisan commands: key:generate, migrate, db:seed, migrate:fresh --seed, serve, test\n";
+}

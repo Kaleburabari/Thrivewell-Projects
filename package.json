@@ -1,0 +1,12 @@
+{
+  "name": "thrivewell-os",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-assets.mjs",
+    "dev": "node scripts/dev-server.mjs",
+    "check:package-access": "bash scripts/check-package-access.sh",
+    "migrate:official": "bash scripts/migrate-to-official-laravel-inertia.sh"
+  },
+  "devDependencies": {}
+}
