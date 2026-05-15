@@ -1,0 +1,8 @@
+.env
+/vendor/
+/node_modules/
+/public/build/
+/storage/database/*.sqlite
+.DS_Store
+npm-debug.log*
+/.migration/
